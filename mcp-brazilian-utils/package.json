@@ -1,0 +1,51 @@
+{
+  "name": "@n8n-marketplace/brazilian-utils-mcp",
+  "version": "1.0.0",
+  "description": "MCP server providing Brazilian business utilities for AI agents",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts"
+  },
+  "keywords": [
+    "mcp",
+    "brazil",
+    "cpf",
+    "cnpj",
+    "cep",
+    "pix",
+    "validation",
+    "ai-tools"
+  ],
+  "author": "n8n-marketplace",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "axios": "^1.6.5",
+    "brazilian-utils": "^1.0.0",
+    "cpf-cnpj-validator": "^1.0.3",
+    "cep-promise": "^4.4.0",
+    "qrcode": "^1.5.3",
+    "pix-utils": "^2.5.0",
+    "node-boleto": "^2.1.0",
+    "decimal.js": "^10.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/qrcode": "^1.5.5",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

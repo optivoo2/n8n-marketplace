@@ -1,0 +1,139 @@
+{
+  "name": "@n8n-marketplace/monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "n8n Template Marketplace with MCP servers",
+  "type": "module",
+  "scripts": {
+    "prepare": "husky install",
+    "build": "npm run build:api && npm run build:mcp",
+    "build:api": "cd api && npm run build",
+    "build:mcp": "cd mcp-brazilian-utils && npm run build",
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:docker\"",
+    "dev:api": "cd api && npm run dev",
+    "dev:docker": "docker-compose up -d postgres redis meilisearch",
+    "start": "docker-compose up",
+    "stop": "docker-compose down",
+    "test": "npm run test:api && npm run test:mcp",
+    "test:api": "cd api && npm test",
+    "test:mcp": "cd mcp-brazilian-utils && npm test",
+    "test:staged": "jest --bail --findRelatedTests",
+    "test:e2e": "jest --config=jest.e2e.config.js",
+    "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
+    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
+    "lint:staged": "eslint --fix --cache --max-warnings=0",
+    "format": "prettier --write \"**/*.{js,ts,tsx,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{js,ts,tsx,json,md,yml,yaml}\"",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf node_modules api/node_modules mcp-brazilian-utils/node_modules",
+    "security:audit": "npm audit && npm run security:scan",
+    "security:scan": "echo 'Install trivy separately: https://github.com/aquasecurity/trivy'",
+    "security:fix": "npm audit fix",
+    "deps:check": "npm-check-updates",
+    "deps:update": "npm-check-updates -u && npm install",
+    "analyze": "npm run analyze:bundle && npm run analyze:deps",
+    "analyze:bundle": "webpack-bundle-analyzer",
+    "analyze:deps": "depcheck",
+    "quality:check": "npm run lint && npm run type-check && npm run test",
+    "quality:report": "npm run test -- --coverage && npm run lint -- --format json > eslint-report.json",
+    "pre-commit": "lint-staged",
+    "commit": "cz",
+    "release": "standard-version",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:clean": "docker-compose down -v",
+    "db:migrate": "cd api && alembic upgrade head",
+    "db:rollback": "cd api && alembic downgrade -1",
+    "db:seed": "cd api && python scripts/seed.py",
+    "mcp:list": "node scripts/list-mcp-servers.js",
+    "mcp:test": "node scripts/test-mcp-server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^18.4.3",
+    "@commitlint/config-conventional": "^18.4.3",
+    "@typescript-eslint/eslint-plugin": "^6.13.2",
+    "@typescript-eslint/parser": "^6.13.2",
+    "commitizen": "^4.3.0",
+    "concurrently": "^8.2.2",
+    "cz-conventional-changelog": "^3.3.0",
+    "depcheck": "^1.4.7",
+    "eslint": "^8.55.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-jest": "^27.6.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "eslint-plugin-security": "^2.1.0",
+    "eslint-plugin-sonarjs": "^0.23.0",
+    "eslint-plugin-unicorn": "^49.0.0",
+    "husky": "^8.0.3",
+    "jest": "^29.7.0",
+    "leasot": "^13.3.0",
+    "lint-staged": "^15.2.0",
+    "npm-check-updates": "^16.14.11",
+    "prettier": "^3.1.1",
+    "secretlint": "^7.1.0",
+    "@secretlint/secretlint-rule-preset-recommend": "^7.1.0",
+    "size-limit": "^11.0.1",
+    "@size-limit/preset-small-lib": "^11.0.1",
+    "standard-version": "^9.5.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx}": [
+      "eslint --fix --cache --max-warnings=0",
+      "prettier --write",
+      "jest --bail --findRelatedTests --passWithNoTests"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ],
+    "*.py": [
+      "black",
+      "flake8",
+      "mypy"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "commitlint": {
+    "extends": ["@commitlint/config-conventional"]
+  },
+  "size-limit": [
+    {
+      "path": "api/dist/index.js",
+      "limit": "500 KB"
+    },
+    {
+      "path": "mcp-brazilian-utils/dist/index.js",
+      "limit": "200 KB"
+    }
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/n8n-marketplace.git"
+  },
+  "keywords": [
+    "n8n",
+    "marketplace",
+    "mcp",
+    "brazil",
+    "automation",
+    "templates"
+  ],
+  "author": "Arthur",
+  "license": "MIT"
+}

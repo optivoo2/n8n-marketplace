@@ -1,0 +1,39 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Pre-commit hook for code quality and safety
+echo "🔍 Running pre-commit checks..."
+
+# 1. Check for sensitive data
+echo "🔐 Checking for secrets..."
+npx secretlint "**/*" --secretlintignore .gitignore
+
+# 2. Run linting
+echo "📝 Running ESLint..."
+npm run lint:staged
+
+# 3. Run Prettier
+echo "✨ Running Prettier..."
+npx prettier --check --cache .
+
+# 4. Type checking
+echo "🔤 Running TypeScript checks..."
+npm run type-check
+
+# 5. Run tests for changed files
+echo "🧪 Running tests..."
+npm run test:staged
+
+# 6. Check for console.logs in production code
+echo "🚫 Checking for console.logs..."
+! grep -r "console.log" --include="*.ts" --include="*.js" --exclude-dir=node_modules --exclude-dir=tests --exclude-dir=scripts src/
+
+# 7. Check for TODO/FIXME comments
+echo "📋 Checking for TODOs..."
+npx leasot 'src/**/*.{js,ts}' --exit-nicely
+
+# 8. Check bundle size
+echo "📦 Checking bundle size..."
+npx size-limit
+
+echo "✅ All pre-commit checks passed!"
