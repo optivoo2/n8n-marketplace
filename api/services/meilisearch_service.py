@@ -30,7 +30,7 @@ class MeilisearchService:
             try:
                 await self.client.create_index(
                     self.templates_index,
-                    {'primaryKey': 'id'}
+                    'id'
                 )
                 print(f"✅ Created index: {self.templates_index}")
             except Exception as e:
@@ -86,7 +86,7 @@ class MeilisearchService:
             try:
                 await self.client.create_index(
                     self.freelancers_index,
-                    {'primaryKey': 'id'}
+                    'id'
                 )
                 print(f"✅ Created index: {self.freelancers_index}")
             except Exception as e:
@@ -162,9 +162,9 @@ class MeilisearchService:
             search_params = {
                 'limit': limit,
                 'offset': offset,
-                'attributesToHighlight': ['title', 'description'],
-                'attributesToCrop': ['description:200'],
-                'cropMarker': '...'
+                'attributes_to_highlight': ['title', 'description'],
+                'attributes_to_crop': ['description:200'],
+                'crop_marker': '...'
             }
             
             if filters:
@@ -180,8 +180,18 @@ class MeilisearchService:
             if not query or query == "*":
                 query = ""
             
-            results = await index.search(query, search_params)
-            return results
+            results = await index.search(query, **search_params)
+            
+            # Convert SearchResults to dictionary for compatibility
+            return {
+                "hits": [hit.dict() if hasattr(hit, 'dict') else dict(hit) for hit in results.hits],
+                "estimatedTotalHits": results.estimated_total_hits,
+                "totalHits": results.total_hits,
+                "processingTimeMs": results.processing_time_ms,
+                "query": results.query,
+                "limit": results.limit,
+                "offset": results.offset
+            }
             
         except Exception as e:
             print(f"Search error: {e}")
@@ -323,14 +333,14 @@ class MeilisearchService:
             
             return {
                 "templates": {
-                    "numberOfDocuments": templates_stats.get("numberOfDocuments", 0),
-                    "isIndexing": templates_stats.get("isIndexing", False),
-                    "fieldDistribution": templates_stats.get("fieldDistribution", {})
+                    "numberOfDocuments": templates_stats.number_of_documents,
+                    "isIndexing": templates_stats.is_indexing,
+                    "fieldDistribution": getattr(templates_stats, 'field_distribution', {})
                 },
                 "freelancers": {
-                    "numberOfDocuments": freelancers_stats.get("numberOfDocuments", 0),
-                    "isIndexing": freelancers_stats.get("isIndexing", False),
-                    "fieldDistribution": freelancers_stats.get("fieldDistribution", {})
+                    "numberOfDocuments": freelancers_stats.number_of_documents,
+                    "isIndexing": freelancers_stats.is_indexing,
+                    "fieldDistribution": getattr(freelancers_stats, 'field_distribution', {})
                 }
             }
             

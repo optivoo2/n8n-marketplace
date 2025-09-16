@@ -6,18 +6,15 @@
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { 
-  CallToolRequestSchema, 
-  ListToolsRequestSchema,
-  ToolsCapability 
-} from '@modelcontextprotocol/sdk/types.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 
 // Import Brazilian utilities
-import { DocumentValidator } from './validators/documents.js';
 import { AddressService } from './services/address.js';
-import { FinanceService } from './services/finance.js';
 import { BusinessService } from './services/business.js';
+import { FinanceService } from './services/finance.js';
 import { TaxCalculator } from './services/tax.js';
+import { ToolArguments, ToolResult } from './types.js';
+import { DocumentValidator } from './validators/documents.js';
 
 // Initialize services
 const docValidator = new DocumentValidator();
@@ -31,12 +28,12 @@ const server = new Server(
   {
     name: 'brazilian-utils',
     version: '1.0.0',
-    description: 'Essential Brazilian business utilities for AI agents'
+    description: 'Essential Brazilian business utilities for AI agents',
   },
   {
     capabilities: {
-      tools: {} as ToolsCapability
-    }
+      tools: {},
+    },
   }
 );
 
@@ -50,13 +47,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          cpf: { 
-            type: 'string', 
-            description: 'CPF to validate (numbers only or formatted)' 
-          }
+          cpf: {
+            type: 'string',
+            description: 'CPF to validate (numbers only or formatted)',
+          },
         },
-        required: ['cpf']
-      }
+        required: ['cpf'],
+      },
     },
     {
       name: 'validate_cnpj',
@@ -64,13 +61,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          cnpj: { 
-            type: 'string', 
-            description: 'CNPJ to validate (numbers only or formatted)' 
-          }
+          cnpj: {
+            type: 'string',
+            description: 'CNPJ to validate (numbers only or formatted)',
+          },
         },
-        required: ['cnpj']
-      }
+        required: ['cnpj'],
+      },
     },
     {
       name: 'validate_pis',
@@ -78,13 +75,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          pis: { 
-            type: 'string', 
-            description: 'PIS/PASEP to validate' 
-          }
+          pis: {
+            type: 'string',
+            description: 'PIS/PASEP to validate',
+          },
         },
-        required: ['pis']
-      }
+        required: ['pis'],
+      },
     },
     {
       name: 'validate_voter_id',
@@ -92,15 +89,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          voter_id: { 
-            type: 'string', 
-            description: 'Voter ID to validate' 
-          }
+          voter_id: {
+            type: 'string',
+            description: 'Voter ID to validate',
+          },
         },
-        required: ['voter_id']
-      }
+        required: ['voter_id'],
+      },
     },
-    
+
     // Address tools
     {
       name: 'lookup_cep',
@@ -108,13 +105,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          cep: { 
-            type: 'string', 
-            description: 'CEP code (8 digits)' 
-          }
+          cep: {
+            type: 'string',
+            description: 'CEP code (8 digits)',
+          },
         },
-        required: ['cep']
-      }
+        required: ['cep'],
+      },
     },
     {
       name: 'validate_cep',
@@ -122,13 +119,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          cep: { 
-            type: 'string', 
-            description: 'CEP to validate' 
-          }
+          cep: {
+            type: 'string',
+            description: 'CEP to validate',
+          },
         },
-        required: ['cep']
-      }
+        required: ['cep'],
+      },
     },
     {
       name: 'calculate_distance',
@@ -136,19 +133,19 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          cep1: { 
-            type: 'string', 
-            description: 'First CEP' 
+          cep1: {
+            type: 'string',
+            description: 'First CEP',
           },
-          cep2: { 
-            type: 'string', 
-            description: 'Second CEP' 
-          }
+          cep2: {
+            type: 'string',
+            description: 'Second CEP',
+          },
         },
-        required: ['cep1', 'cep2']
-      }
+        required: ['cep1', 'cep2'],
+      },
     },
-    
+
     // Finance tools
     {
       name: 'generate_pix_qr',
@@ -156,29 +153,29 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          key: { 
-            type: 'string', 
-            description: 'PIX key (CPF, CNPJ, email, phone, or random)' 
+          key: {
+            type: 'string',
+            description: 'PIX key (CPF, CNPJ, email, phone, or random)',
           },
-          amount: { 
-            type: 'number', 
-            description: 'Amount in BRL' 
+          amount: {
+            type: 'number',
+            description: 'Amount in BRL',
           },
-          receiver_name: { 
-            type: 'string', 
-            description: 'Receiver name' 
+          receiver_name: {
+            type: 'string',
+            description: 'Receiver name',
           },
-          city: { 
-            type: 'string', 
-            description: 'Receiver city' 
+          city: {
+            type: 'string',
+            description: 'Receiver city',
           },
-          description: { 
-            type: 'string', 
-            description: 'Payment description (optional)' 
-          }
+          description: {
+            type: 'string',
+            description: 'Payment description (optional)',
+          },
         },
-        required: ['key', 'amount', 'receiver_name', 'city']
-      }
+        required: ['key', 'amount', 'receiver_name', 'city'],
+      },
     },
     {
       name: 'validate_pix_key',
@@ -186,18 +183,18 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          key: { 
-            type: 'string', 
-            description: 'PIX key to validate' 
+          key: {
+            type: 'string',
+            description: 'PIX key to validate',
           },
-          key_type: { 
-            type: 'string', 
+          key_type: {
+            type: 'string',
             description: 'Type of key: cpf, cnpj, email, phone, or random',
-            enum: ['cpf', 'cnpj', 'email', 'phone', 'random']
-          }
+            enum: ['cpf', 'cnpj', 'email', 'phone', 'random'],
+          },
         },
-        required: ['key', 'key_type']
-      }
+        required: ['key', 'key_type'],
+      },
     },
     {
       name: 'generate_boleto',
@@ -205,27 +202,27 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          bank_code: { 
-            type: 'string', 
-            description: 'Bank code (3 digits)' 
+          bank_code: {
+            type: 'string',
+            description: 'Bank code (3 digits)',
           },
-          amount: { 
-            type: 'number', 
-            description: 'Amount in BRL' 
+          amount: {
+            type: 'number',
+            description: 'Amount in BRL',
           },
-          due_date: { 
-            type: 'string', 
-            description: 'Due date (YYYY-MM-DD)' 
+          due_date: {
+            type: 'string',
+            description: 'Due date (YYYY-MM-DD)',
           },
-          document_number: { 
-            type: 'string', 
-            description: 'Document number' 
-          }
+          document_number: {
+            type: 'string',
+            description: 'Document number',
+          },
         },
-        required: ['bank_code', 'amount', 'due_date', 'document_number']
-      }
+        required: ['bank_code', 'amount', 'due_date', 'document_number'],
+      },
     },
-    
+
     // Business lookup tools
     {
       name: 'lookup_cnpj',
@@ -233,13 +230,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          cnpj: { 
-            type: 'string', 
-            description: 'CNPJ to lookup' 
-          }
+          cnpj: {
+            type: 'string',
+            description: 'CNPJ to lookup',
+          },
         },
-        required: ['cnpj']
-      }
+        required: ['cnpj'],
+      },
     },
     {
       name: 'check_simples_nacional',
@@ -247,15 +244,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          cnpj: { 
-            type: 'string', 
-            description: 'CNPJ to check' 
-          }
+          cnpj: {
+            type: 'string',
+            description: 'CNPJ to check',
+          },
         },
-        required: ['cnpj']
-      }
+        required: ['cnpj'],
+      },
     },
-    
+
     // Tax calculation tools
     {
       name: 'calculate_income_tax',
@@ -263,18 +260,18 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          monthly_income: { 
-            type: 'number', 
-            description: 'Monthly income in BRL' 
+          monthly_income: {
+            type: 'number',
+            description: 'Monthly income in BRL',
           },
-          dependents: { 
-            type: 'number', 
+          dependents: {
+            type: 'number',
             description: 'Number of dependents',
-            default: 0
-          }
+            default: 0,
+          },
         },
-        required: ['monthly_income']
-      }
+        required: ['monthly_income'],
+      },
     },
     {
       name: 'calculate_inss',
@@ -282,19 +279,19 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          salary: { 
-            type: 'number', 
-            description: 'Monthly salary in BRL' 
+          salary: {
+            type: 'number',
+            description: 'Monthly salary in BRL',
           },
-          type: { 
-            type: 'string', 
+          type: {
+            type: 'string',
             description: 'Type: employee or self-employed',
             enum: ['employee', 'self-employed'],
-            default: 'employee'
-          }
+            default: 'employee',
+          },
         },
-        required: ['salary']
-      }
+        required: ['salary'],
+      },
     },
     {
       name: 'calculate_fgts',
@@ -302,13 +299,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          salary: { 
-            type: 'number', 
-            description: 'Monthly salary in BRL' 
-          }
+          salary: {
+            type: 'number',
+            description: 'Monthly salary in BRL',
+          },
         },
-        required: ['salary']
-      }
+        required: ['salary'],
+      },
     },
     {
       name: 'calculate_vacation',
@@ -316,23 +313,23 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          salary: { 
-            type: 'number', 
-            description: 'Monthly salary in BRL' 
+          salary: {
+            type: 'number',
+            description: 'Monthly salary in BRL',
           },
-          days: { 
-            type: 'number', 
+          days: {
+            type: 'number',
             description: 'Vacation days (default 30)',
-            default: 30
+            default: 30,
           },
-          sell_days: { 
-            type: 'number', 
+          sell_days: {
+            type: 'number',
             description: 'Days to sell (abono pecuniário)',
-            default: 0
-          }
+            default: 0,
+          },
         },
-        required: ['salary']
-      }
+        required: ['salary'],
+      },
     },
     {
       name: 'calculate_13th_salary',
@@ -340,133 +337,166 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          salary: { 
-            type: 'number', 
-            description: 'Monthly salary in BRL' 
+          salary: {
+            type: 'number',
+            description: 'Monthly salary in BRL',
           },
-          months_worked: { 
-            type: 'number', 
+          months_worked: {
+            type: 'number',
             description: 'Months worked in the year',
-            default: 12
-          }
+            default: 12,
+          },
         },
-        required: ['salary']
-      }
-    }
-  ]
+        required: ['salary'],
+      },
+    },
+  ],
 }));
 
 // Handle tool execution
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
+server.setRequestHandler(CallToolRequestSchema, async request => {
   const { name, arguments: args } = request.params;
 
   try {
-    let result: any;
+    let result: ToolResult;
+
+    // Validate that args exist
+    if (!args) {
+      throw new Error(`Tool '${name}' requires arguments but none were provided`);
+    }
+
+    const toolArgs = args as unknown as ToolArguments;
 
     switch (name) {
       // Document validation
       case 'validate_cpf':
-        result = await docValidator.validateCPF(args.cpf as string);
+        result = await docValidator.validateCPF((toolArgs as { cpf: string }).cpf);
         break;
-      
+
       case 'validate_cnpj':
-        result = await docValidator.validateCNPJ(args.cnpj as string);
+        result = await docValidator.validateCNPJ((toolArgs as { cnpj: string }).cnpj);
         break;
-      
+
       case 'validate_pis':
-        result = await docValidator.validatePIS(args.pis as string);
+        result = await docValidator.validatePIS((toolArgs as { pis: string }).pis);
         break;
-      
+
       case 'validate_voter_id':
-        result = await docValidator.validateVoterID(args.voter_id as string);
+        result = await docValidator.validateVoterID((toolArgs as { voter_id: string }).voter_id);
         break;
-      
+
       // Address services
       case 'lookup_cep':
-        result = await addressService.lookupCEP(args.cep as string);
+        result = await addressService.lookupCEP((toolArgs as { cep: string }).cep);
         break;
-      
+
       case 'validate_cep':
-        result = await addressService.validateCEP(args.cep as string);
+        result = await addressService.validateCEP((toolArgs as { cep: string }).cep);
         break;
-      
+
       case 'calculate_distance':
-        result = await addressService.calculateDistance(
-          args.cep1 as string,
-          args.cep2 as string
-        );
+        {
+          const distanceArgs = toolArgs as { cep1: string; cep2: string };
+          result = await addressService.calculateDistance(distanceArgs.cep1, distanceArgs.cep2);
+        }
         break;
-      
+
       // Finance services
       case 'generate_pix_qr':
-        result = await financeService.generatePixQR({
-          key: args.key as string,
-          amount: args.amount as number,
-          receiverName: args.receiver_name as string,
-          city: args.city as string,
-          description: args.description as string
-        });
+        {
+          const pixArgs = toolArgs as {
+            key: string;
+            amount: number;
+            receiver_name: string;
+            city: string;
+            description?: string;
+          };
+          result = await financeService.generatePixQR({
+            key: pixArgs.key,
+            amount: pixArgs.amount,
+            receiverName: pixArgs.receiver_name,
+            city: pixArgs.city,
+            description: pixArgs.description,
+          });
+        }
         break;
-      
+
       case 'validate_pix_key':
-        result = await financeService.validatePixKey(
-          args.key as string,
-          args.key_type as string
-        );
+        {
+          const pixKeyArgs = toolArgs as { key: string; key_type: string };
+          result = await financeService.validatePixKey(pixKeyArgs.key, pixKeyArgs.key_type);
+        }
         break;
-      
+
       case 'generate_boleto':
-        result = await financeService.generateBoleto({
-          bankCode: args.bank_code as string,
-          amount: args.amount as number,
-          dueDate: args.due_date as string,
-          documentNumber: args.document_number as string
-        });
+        {
+          const boletoArgs = toolArgs as {
+            bank_code: string;
+            amount: number;
+            due_date: string;
+            document_number: string;
+          };
+          result = await financeService.generateBoleto({
+            bankCode: boletoArgs.bank_code,
+            amount: boletoArgs.amount,
+            dueDate: boletoArgs.due_date,
+            documentNumber: boletoArgs.document_number,
+          });
+        }
         break;
-      
+
       // Business lookups
       case 'lookup_cnpj':
-        result = await businessService.lookupCNPJ(args.cnpj as string);
+        result = await businessService.lookupCNPJ((toolArgs as { cnpj: string }).cnpj);
         break;
-      
+
       case 'check_simples_nacional':
-        result = await businessService.checkSimplesNacional(args.cnpj as string);
+        result = await businessService.checkSimplesNacional((toolArgs as { cnpj: string }).cnpj);
         break;
-      
+
       // Tax calculations
       case 'calculate_income_tax':
-        result = await taxCalculator.calculateIncomeTax(
-          args.monthly_income as number,
-          args.dependents as number || 0
-        );
+        {
+          const incomeArgs = toolArgs as { monthly_income: number; dependents?: number };
+          result = await taxCalculator.calculateIncomeTax(
+            incomeArgs.monthly_income,
+            incomeArgs.dependents || 0
+          );
+        }
         break;
-      
+
       case 'calculate_inss':
-        result = await taxCalculator.calculateINSS(
-          args.salary as number,
-          args.type as string || 'employee'
-        );
+        {
+          const inssArgs = toolArgs as { salary: number; type?: string };
+          result = await taxCalculator.calculateINSS(inssArgs.salary, inssArgs.type || 'employee');
+        }
         break;
-      
+
       case 'calculate_fgts':
-        result = await taxCalculator.calculateFGTS(args.salary as number);
+        result = await taxCalculator.calculateFGTS((toolArgs as { salary: number }).salary);
         break;
-      
+
       case 'calculate_vacation':
-        result = await taxCalculator.calculateVacation(
-          args.salary as number,
-          args.days as number || 30,
-          args.sell_days as number || 0
-        );
+        {
+          const vacationArgs = toolArgs as { salary: number; days?: number; sell_days?: number };
+          result = await taxCalculator.calculateVacation(
+            vacationArgs.salary,
+            vacationArgs.days || 30,
+            vacationArgs.sell_days || 0
+          );
+        }
         break;
-      
+
       case 'calculate_13th_salary':
-        result = await taxCalculator.calculate13thSalary(
-          args.salary as number,
-          args.months_worked as number || 12
-        );
+        {
+          const thirteenthArgs = toolArgs as { salary: number; months_worked?: number };
+          result = await taxCalculator.calculate13thSalary(
+            thirteenthArgs.salary,
+            thirteenthArgs.months_worked || 12
+          );
+        }
         break;
-      
+
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
@@ -475,24 +505,28 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(result, null, 2)
-        }
-      ]
+          text: JSON.stringify(result, null, 2),
+        },
+      ],
     };
-
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'An error occurred';
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify({
-            error: true,
-            message: error.message || 'An error occurred',
-            tool: name
-          }, null, 2)
-        }
+          text: JSON.stringify(
+            {
+              error: true,
+              message: errorMessage,
+              tool: name,
+            },
+            null,
+            2
+          ),
+        },
       ],
-      isError: true
+      isError: true,
     };
   }
 });
@@ -501,11 +535,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  
+
   console.error('Brazilian Utils MCP Server started successfully');
 }
 
-main().catch((error) => {
+main().catch(error => {
   console.error('Failed to start server:', error);
   process.exit(1);
 });

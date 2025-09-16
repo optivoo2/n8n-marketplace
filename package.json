@@ -6,16 +6,16 @@
   "type": "module",
   "scripts": {
     "prepare": "husky install",
-    "build": "npm run build:api && npm run build:mcp",
-    "build:api": "cd api && npm run build",
+    "build": "npm run build:mcp",
+    "build:api": "echo 'API is Python-based, no build step needed'",
     "build:mcp": "cd mcp-brazilian-utils && npm run build",
     "dev": "concurrently \"npm run dev:api\" \"npm run dev:docker\"",
-    "dev:api": "cd api && npm run dev",
+    "dev:api": "cd api && ./venv/bin/python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000",
     "dev:docker": "docker-compose up -d postgres redis meilisearch",
     "start": "docker-compose up",
     "stop": "docker-compose down",
     "test": "npm run test:api && npm run test:mcp",
-    "test:api": "cd api && npm test",
+    "test:api": "cd api && ./venv/bin/python -m pytest",
     "test:mcp": "cd mcp-brazilian-utils && npm test",
     "test:staged": "jest --bail --findRelatedTests",
     "test:e2e": "jest --config=jest.e2e.config.js",
@@ -106,7 +106,9 @@
     }
   },
   "commitlint": {
-    "extends": ["@commitlint/config-conventional"]
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   },
   "size-limit": [
     {

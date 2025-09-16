@@ -11,7 +11,7 @@ from datetime import datetime
 import os
 
 # Database URL
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://marketplace:changeMe123@localhost:5432/n8n_marketplace")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://marketplace:changeMe123@localhost:5433/n8n_marketplace")
 # Convert to async URL
 ASYNC_DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
 
@@ -55,9 +55,9 @@ class Template(Base):
     license = Column(String(50), default="unknown")
     
     # Stats
-    downloads = Column(Integer, default=0)
-    views = Column(Integer, default=0)
-    rating = Column(Float, default=0.0)
+    downloads = Column(Integer, default=0, nullable=False)
+    views = Column(Integer, default=0, nullable=False)
+    rating = Column(Float, default=0.0, nullable=False)
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -90,7 +90,7 @@ class Freelancer(Base):
     # Rates & Availability
     hourly_rate = Column(Float)
     currency = Column(String(10), default="USD")
-    available = Column(Boolean, default=True)
+    available = Column(Boolean, default=True, nullable=False)
     
     # Portfolio
     portfolio_url = Column(Text)
@@ -103,7 +103,7 @@ class Freelancer(Base):
     response_time_hours = Column(Float)
     
     # Verification
-    verified = Column(Boolean, default=False)
+    verified = Column(Boolean, default=False, nullable=False)
     verified_at = Column(DateTime)
     
     # Timestamps

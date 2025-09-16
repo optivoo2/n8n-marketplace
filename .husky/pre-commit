@@ -37,3 +37,4 @@ echo "📦 Checking bundle size..."
 npx size-limit
 
 echo "✅ All pre-commit checks passed!"
+npm run pre-commit

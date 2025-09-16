@@ -3,7 +3,8 @@
  * PIX, Boleto, payment validations
  */
 
-import { cpf, cnpj } from 'cpf-cnpj-validator';
+import { cnpj, cpf } from 'cpf-cnpj-validator';
+import type { PIXGenerationResult, PIXValidationResult } from '../types.js';
 
 export class FinanceService {
   /**
@@ -15,94 +16,94 @@ export class FinanceService {
     receiverName: string;
     city: string;
     description?: string;
-  }): Promise<any> {
+  }): Promise<PIXGenerationResult | { error: boolean; message: string }> {
     try {
       const { key, amount, receiverName, city, description } = params;
-      
+
       // Validate amount
       if (amount <= 0) {
         return {
           error: true,
-          message: 'Amount must be greater than 0'
+          message: 'Amount must be greater than 0',
         };
       }
 
       // Generate EMV payload (simplified version)
       // In production, use a proper PIX library for full EMV compliance
-      
+
       // Payload Format Indicator
       let payload = '000201';
-      
+
       // Merchant Account Information
       payload += '26';
-      
+
       // GUI (br.gov.bcb.pix)
       const gui = '0014br.gov.bcb.pix';
-      
+
       // Key
       const keyLength = key.length.toString().padStart(2, '0');
       const keyInfo = `01${keyLength}${key}`;
-      
+
       // Description (optional)
       let descInfo = '';
       if (description) {
         const descLength = description.length.toString().padStart(2, '0');
         descInfo = `02${descLength}${description}`;
       }
-      
+
       const merchantInfo = gui + keyInfo + descInfo;
       const merchantLength = merchantInfo.length.toString().padStart(2, '0');
       payload += merchantLength + merchantInfo;
-      
+
       // Merchant Category Code
       payload += '52040000';
-      
+
       // Transaction Currency (986 = BRL)
       payload += '5303986';
-      
+
       // Transaction Amount
       if (amount > 0) {
         const amountStr = amount.toFixed(2);
         const amountLength = amountStr.length.toString().padStart(2, '0');
         payload += `54${amountLength}${amountStr}`;
       }
-      
+
       // Country Code (BR)
       payload += '5802BR';
-      
+
       // Merchant Name
       const nameLength = receiverName.length.toString().padStart(2, '0');
       payload += `59${nameLength}${receiverName}`;
-      
+
       // Merchant City
       const cityLength = city.length.toString().padStart(2, '0');
       payload += `60${cityLength}${city}`;
-      
+
       // Additional Data Field Template
       payload += '62070503***';
-      
+
       // CRC16 placeholder
       payload += '6304';
-      
+
       // Calculate CRC16
       const crc = this.calculateCRC16(payload);
       payload += crc;
-      
+
       return {
-        payload,
+        payload: payload,
         qr_code: payload,
         amount: amount,
-        receiver: receiverName,
-        key,
+        receiver_name: receiverName,
+        pix_key: key,
         city,
-        description: description || null,
+        description: description || undefined,
         brcode: `00020126${payload.length - 8}${payload.substring(8)}`,
-        instructions: 'Use this payload to generate QR code image or copy as PIX code'
+        instructions: 'Use this payload to generate QR code image or copy as PIX code',
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         error: true,
-        message: error.message || 'Failed to generate PIX QR code'
+        message: error instanceof Error ? error.message : 'Failed to generate PIX QR code',
       };
     }
   }
@@ -110,11 +111,14 @@ export class FinanceService {
   /**
    * Validate PIX key format
    */
-  async validatePixKey(key: string, keyType: string): Promise<any> {
+  async validatePixKey(
+    key: string,
+    keyType: string
+  ): Promise<PIXValidationResult | { error: boolean; message: string }> {
     try {
       let isValid = false;
       let formattedKey = key;
-      let additionalInfo: any = {};
+      const additionalInfo: Record<string, unknown> = {};
 
       switch (keyType) {
         case 'cpf':
@@ -125,7 +129,7 @@ export class FinanceService {
             additionalInfo.type = 'CPF';
           }
           break;
-        
+
         case 'cnpj':
           const cleanCNPJ = key.replace(/\D/g, '');
           isValid = cnpj.isValid(cleanCNPJ);
@@ -134,14 +138,14 @@ export class FinanceService {
             additionalInfo.type = 'CNPJ';
           }
           break;
-        
+
         case 'email':
           // Basic email validation
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           isValid = emailRegex.test(key);
           additionalInfo.type = 'Email';
           break;
-        
+
         case 'phone':
           // Brazilian phone validation (+55 XX XXXXX-XXXX)
           const cleanPhone = key.replace(/\D/g, '');
@@ -161,18 +165,19 @@ export class FinanceService {
             );
           }
           break;
-        
+
         case 'random':
           // UUID v4 validation
-          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+          const uuidRegex =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
           isValid = uuidRegex.test(key);
           additionalInfo.type = 'Random Key (UUID)';
           break;
-        
+
         default:
           return {
             error: true,
-            message: 'Invalid key type. Must be: cpf, cnpj, email, phone, or random'
+            message: 'Invalid key type. Must be: cpf, cnpj, email, phone, or random',
           };
       }
 
@@ -182,13 +187,12 @@ export class FinanceService {
         original_key: key,
         key_type: keyType,
         ...additionalInfo,
-        can_receive_pix: isValid,
-        message: isValid ? 'Valid PIX key' : `Invalid ${keyType.toUpperCase()} format`
+        message: isValid ? 'Valid PIX key' : `Invalid ${keyType.toUpperCase()} format`,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         error: true,
-        message: error.message || 'Failed to validate PIX key'
+        message: error instanceof Error ? error.message : 'Failed to validate PIX key',
       };
     }
   }
@@ -204,19 +208,19 @@ export class FinanceService {
   }): Promise<any> {
     try {
       const { bankCode, amount, dueDate, documentNumber } = params;
-      
+
       // Validate inputs
       if (bankCode.length !== 3) {
         return {
           error: true,
-          message: 'Bank code must have 3 digits'
+          message: 'Bank code must have 3 digits',
         };
       }
 
       if (amount <= 0) {
         return {
           error: true,
-          message: 'Amount must be greater than 0'
+          message: 'Amount must be greater than 0',
         };
       }
 
@@ -225,51 +229,55 @@ export class FinanceService {
       if (isNaN(dueDateObj.getTime())) {
         return {
           error: true,
-          message: 'Invalid due date format'
+          message: 'Invalid due date format',
         };
       }
 
       // Calculate days since base date (07/10/1997)
       const baseDate = new Date('1997-10-07');
-      const daysDiff = Math.floor((dueDateObj.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
-      
+      const daysDiff = Math.floor(
+        (dueDateObj.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
       // Format amount (10 digits, no decimal point)
-      const amountStr = Math.round(amount * 100).toString().padStart(10, '0');
-      
+      const amountStr = Math.round(amount * 100)
+        .toString()
+        .padStart(10, '0');
+
       // Generate simplified barcode (not production-ready)
       // Real implementation would need proper bank integration
-      
+
       // Bank code (3 digits)
       let barcode = bankCode;
-      
+
       // Currency code (9 = Real)
       barcode += '9';
-      
+
       // Due date factor (4 digits)
       barcode += daysDiff.toString().padStart(4, '0');
-      
+
       // Amount (10 digits)
       barcode += amountStr;
-      
+
       // Field 1: Bank + Currency + First 5 positions of campo livre
       // Field 2: Next 10 positions of campo livre
       // Field 3: Next 10 positions of campo livre
       // Field 4: Check digit
       // Field 5: Due date factor + amount
-      
+
       // Add random campo livre for demonstration (25 digits)
       const campoLivre = documentNumber.padStart(25, '0').substring(0, 25);
       barcode += campoLivre;
-      
+
       // Calculate check digit
       const checkDigit = this.calculateBoletoCheckDigit(barcode);
-      
+
       // Insert check digit at position 4
       const finalBarcode = barcode.substring(0, 4) + checkDigit + barcode.substring(4);
-      
+
       // Format typeable line (linha digitável)
       const typeableLine = this.formatBoletoTypeableLine(finalBarcode);
-      
+
       return {
         barcode: finalBarcode,
         typeable_line: typeableLine,
@@ -278,12 +286,13 @@ export class FinanceService {
         amount: amount,
         due_date: dueDate,
         document_number: documentNumber,
-        warning: 'This is a simplified boleto generation. For production use, integrate with bank APIs.'
+        warning:
+          'This is a simplified boleto generation. For production use, integrate with bank APIs.',
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         error: true,
-        message: error.message || 'Failed to generate boleto'
+        message: error instanceof Error ? error.message : 'Failed to generate boleto',
       };
     }
   }
@@ -293,11 +302,11 @@ export class FinanceService {
    */
   private calculateCRC16(payload: string): string {
     const polynomial = 0x1021;
-    let crc = 0xFFFF;
-    
+    let crc = 0xffff;
+
     for (let i = 0; i < payload.length; i++) {
       crc ^= payload.charCodeAt(i) << 8;
-      
+
       for (let j = 0; j < 8; j++) {
         if ((crc & 0x8000) !== 0) {
           crc = (crc << 1) ^ polynomial;
@@ -306,8 +315,8 @@ export class FinanceService {
         }
       }
     }
-    
-    return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+
+    return (crc & 0xffff).toString(16).toUpperCase().padStart(4, '0');
   }
 
   /**
@@ -317,19 +326,19 @@ export class FinanceService {
     const sequence = [2, 3, 4, 5, 6, 7, 8, 9];
     let sum = 0;
     let multiplier = 0;
-    
+
     for (let i = barcode.length - 1; i >= 0; i--) {
       sum += parseInt(barcode[i]) * sequence[multiplier];
       multiplier = (multiplier + 1) % sequence.length;
     }
-    
+
     const remainder = sum % 11;
     const digit = 11 - remainder;
-    
+
     if (digit === 0 || digit === 10 || digit === 11) {
       return '1';
     }
-    
+
     return digit.toString();
   }
 
@@ -343,9 +352,9 @@ export class FinanceService {
       barcode.substring(10, 21),
       barcode.substring(21, 32),
       barcode.substring(32, 33),
-      barcode.substring(33)
+      barcode.substring(33),
     ];
-    
+
     return groups.join('.');
   }
 
@@ -366,9 +375,9 @@ export class FinanceService {
       '453': 'Banco Rural',
       '633': 'Banco Rendimento',
       '652': 'Itaú Unibanco',
-      '745': 'Citibank'
+      '745': 'Citibank',
     };
-    
+
     return banks[code] || 'Unknown Bank';
   }
 }

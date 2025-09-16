@@ -39,10 +39,10 @@ export class DocumentValidator {
           error: 'Invalid CPF checksum'
         };
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         valid: false,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -80,10 +80,10 @@ export class DocumentValidator {
           error: 'Invalid CNPJ checksum'
         };
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         valid: false,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -138,10 +138,10 @@ export class DocumentValidator {
           error: 'Invalid PIS checksum'
         };
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         valid: false,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -220,10 +220,10 @@ export class DocumentValidator {
           error: 'Invalid Voter ID checksum'
         };
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         valid: false,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
