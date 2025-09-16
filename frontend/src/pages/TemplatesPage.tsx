@@ -1,6 +1,6 @@
+import { Calendar, Download, Search, Star } from 'lucide-react';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Star, Download, Calendar } from 'lucide-react';
 
 const TemplatesPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');

@@ -1,6 +1,6 @@
+import { ArrowLeft, Calendar, Download, ExternalLink, Star, Tag, User } from 'lucide-react';
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Download, Star, Calendar, User, Tag, ExternalLink } from 'lucide-react';
+import { Link, useParams } from 'react-router-dom';
 
 const TemplateDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();

@@ -1,6 +1,6 @@
+import { ArrowRight, Download, Star, Users, Zap } from 'lucide-react';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Zap, Users, Star, Download } from 'lucide-react';
 
 const HomePage: React.FC = () => {
   const featuredTemplates = [

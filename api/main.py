@@ -11,6 +11,7 @@ import os
 from typing import List, Optional
 from datetime import datetime
 import asyncio
+import logging
 
 # Import routers
 from routers import templates, freelancers, search, webhooks, auth, payments
@@ -18,32 +19,48 @@ from database import engine, Base, get_db
 from services.meilisearch_service import MeilisearchService
 from services.template_importer import TemplateImporter
 from services.ai_assistant import AIAssistant
+from security import validate_environment, get_cors_origins, add_security_headers, check_rate_limit
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Lifespan context manager for startup/shutdown
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    print("🚀 Starting n8n Marketplace API...")
+    logger.info("🚀 Starting n8n Marketplace API...")
     
-    # Create database tables
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    
-    # Initialize Meilisearch
-    search_service = MeilisearchService()
-    await search_service.initialize_indexes()
-    
-    # Import initial templates if needed
-    if os.getenv("IMPORT_TEMPLATES_ON_START", "true").lower() == "true":
-        importer = TemplateImporter()
-        asyncio.create_task(importer.import_from_github())
-    
-    print("✅ API Ready!")
+    try:
+        # Validate environment variables
+        validate_environment()
+        
+        # Create database tables
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("✅ Database tables created")
+        
+        # Initialize Meilisearch
+        search_service = MeilisearchService()
+        await search_service.initialize_indexes()
+        logger.info("✅ Meilisearch initialized")
+        
+        # Import initial templates if needed (run in background)
+        if os.getenv("IMPORT_TEMPLATES_ON_START", "true").lower() == "true":
+            importer = TemplateImporter()
+            asyncio.create_task(importer.import_from_github())
+            logger.info("✅ Template import started in background")
+        
+        logger.info("✅ API Ready!")
+        
+    except Exception as e:
+        logger.error(f"❌ Startup failed: {e}")
+        raise
     
     yield
     
     # Shutdown
-    print("👋 Shutting down...")
+    logger.info("👋 Shutting down...")
 
 # Create FastAPI app
 app = FastAPI(
@@ -57,14 +74,16 @@ app = FastAPI(
 )
 
 # CORS configuration - Production-ready settings
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins if os.getenv("ENVIRONMENT") == "production" else ["*"],
+    allow_origins=get_cors_origins(),
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Add security headers middleware
+app.middleware("http")(add_security_headers)
 
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
@@ -76,8 +95,12 @@ app.include_router(payments.router, prefix="/api/payments", tags=["Payments"])
 
 # Health check endpoint
 @app.get("/health")
-async def health_check():
+async def health_check(request: Request):
     """Health check endpoint for Docker and monitoring"""
+    # Check rate limiting
+    if not check_rate_limit(request):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded")
+    
     return {
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),

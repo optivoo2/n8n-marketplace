@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
-import { Search, Filter, Star, Download, Calendar } from 'lucide-react';
+import { Calendar, Download, Filter, Search, Star } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 
 const SearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -106,7 +106,7 @@ const SearchPage: React.FC = () => {
   // Sort templates
   const sortedTemplates = [...filteredTemplates].sort((a, b) => {
     switch (filters.sortBy) {
-      case 'relevance':
+      case 'relevance': {
         // Simple relevance based on name/description match
         const aRelevance = searchQuery === '' ? 0 : 
           (a.name.toLowerCase().includes(searchQuery.toLowerCase()) ? 3 : 0) +
@@ -117,6 +117,7 @@ const SearchPage: React.FC = () => {
           (b.description.toLowerCase().includes(searchQuery.toLowerCase()) ? 2 : 0) +
           (b.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ? 1 : 0);
         return bRelevance - aRelevance;
+      }
       case 'newest':
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       case 'popular':
@@ -135,14 +136,14 @@ const SearchPage: React.FC = () => {
     updateSearchParams();
   };
 
-  const updateSearchParams = () => {
+  const updateSearchParams = useCallback(() => {
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
     if (filters.category !== 'all') params.set('category', filters.category);
     if (filters.minRating !== '0') params.set('minRating', filters.minRating);
     if (filters.sortBy !== 'relevance') params.set('sortBy', filters.sortBy);
     setSearchParams(params);
-  };
+  }, [searchQuery, filters, setSearchParams]);
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -152,7 +153,7 @@ const SearchPage: React.FC = () => {
 
   useEffect(() => {
     updateSearchParams();
-  }, [filters]);
+  }, [filters, updateSearchParams]);
 
   return (
     <div className="space-y-8">

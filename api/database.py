@@ -15,8 +15,15 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://marketplace:changeMe123@l
 # Convert to async URL
 ASYNC_DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
 
-# Create async engine
-engine = create_async_engine(ASYNC_DATABASE_URL, echo=True)
+# Create async engine with proper configuration
+engine = create_async_engine(
+    ASYNC_DATABASE_URL, 
+    echo=os.getenv("ENVIRONMENT") != "production",  # Only echo in development
+    pool_size=20,  # Connection pool size
+    max_overflow=30,  # Maximum overflow connections
+    pool_pre_ping=True,  # Verify connections before use
+    pool_recycle=3600,  # Recycle connections every hour
+)
 
 # Create async session
 AsyncSessionLocal = sessionmaker(

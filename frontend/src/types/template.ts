@@ -11,8 +11,8 @@ export interface Template {
   createdAt: string;
   updatedAt: string;
   workflow: {
-    nodes: any[];
-    connections: any[];
+    nodes: Record<string, unknown>[];
+    connections: Record<string, unknown>[];
   };
   preview?: string;
   documentation?: string;

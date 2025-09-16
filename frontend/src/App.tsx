@@ -1,11 +1,11 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import Header from './components/Header';
-import HomePage from './pages/HomePage';
-import TemplatesPage from './pages/TemplatesPage';
-import TemplateDetailPage from './pages/TemplateDetailPage';
 import CategoriesPage from './pages/CategoriesPage';
+import HomePage from './pages/HomePage';
 import SearchPage from './pages/SearchPage';
+import TemplateDetailPage from './pages/TemplateDetailPage';
+import TemplatesPage from './pages/TemplatesPage';
 
 const queryClient = new QueryClient();
 

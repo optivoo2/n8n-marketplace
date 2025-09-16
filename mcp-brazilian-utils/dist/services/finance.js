@@ -90,7 +90,7 @@ export class FinanceService {
             let formattedKey = key;
             const additionalInfo = {};
             switch (keyType) {
-                case 'cpf':
+                case 'cpf': {
                     const cleanCPF = key.replace(/\D/g, '');
                     isValid = cpf.isValid(cleanCPF);
                     if (isValid) {
@@ -98,7 +98,8 @@ export class FinanceService {
                         additionalInfo.type = 'CPF';
                     }
                     break;
-                case 'cnpj':
+                }
+                case 'cnpj': {
                     const cleanCNPJ = key.replace(/\D/g, '');
                     isValid = cnpj.isValid(cleanCNPJ);
                     if (isValid) {
@@ -106,13 +107,15 @@ export class FinanceService {
                         additionalInfo.type = 'CNPJ';
                     }
                     break;
-                case 'email':
+                }
+                case 'email': {
                     // Basic email validation
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                     isValid = emailRegex.test(key);
                     additionalInfo.type = 'Email';
                     break;
-                case 'phone':
+                }
+                case 'phone': {
                     // Brazilian phone validation (+55 XX XXXXX-XXXX)
                     const cleanPhone = key.replace(/\D/g, '');
                     if (cleanPhone.startsWith('55')) {
@@ -129,12 +132,14 @@ export class FinanceService {
                         additionalInfo.formatted = formattedKey.replace(/^(\+55)(\d{2})(\d{5})(\d{4})$/, '$1 $2 $3-$4');
                     }
                     break;
-                case 'random':
+                }
+                case 'random': {
                     // UUID v4 validation
                     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
                     isValid = uuidRegex.test(key);
                     additionalInfo.type = 'Random Key (UUID)';
                     break;
+                }
                 default:
                     return {
                         error: true,

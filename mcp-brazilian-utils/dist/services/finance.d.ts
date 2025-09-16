@@ -32,7 +32,13 @@ export declare class FinanceService {
         amount: number;
         dueDate: string;
         documentNumber: string;
-    }): Promise<any>;
+    }): Promise<{
+        success: boolean;
+        barcode?: string;
+        digitableLine?: string;
+        error?: boolean;
+        message?: string;
+    }>;
     /**
      * Calculate CRC16 for PIX payload
      */
