@@ -17,6 +17,7 @@
     "test": "npm run test:api && npm run test:mcp",
     "test:api": "cd api && ./venv/bin/python -m pytest",
     "test:mcp": "cd mcp-brazilian-utils && npm test",
+    "test:unit": "npm run test:mcp",
     "test:staged": "jest --bail --findRelatedTests",
     "test:e2e": "jest --config=jest.e2e.config.js",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
