@@ -23,7 +23,7 @@
   "author": "n8n-marketplace",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.5.0",
+    "@modelcontextprotocol/sdk": "^1.25.1",
     "axios": "^1.6.5",
     "cep-promise": "^4.4.0",
     "cpf-cnpj-validator": "^1.0.3",
